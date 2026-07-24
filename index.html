@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/farewise/">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Free car vs Uber cost calculator: compare the true monthly cost of driving your own vehicle vs cabs vs metro/bus for the trips you already take — from fuel, parking, insurance, fares and trip counts you enter. Private and offline; this demo stores nothing.">
+
+  <meta property="og:title" content="Car vs cab vs metro cost calculator — farewise">
+  <meta property="og:description" content="Compare your own vehicle vs cabs vs metro/bus by true monthly cost. Enter your fares and trips; farewise names the cheapest and the monthly saving. Free and private.">
+  <meta property="og:type" content="website">
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="farewise">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>Car vs Uber Cost Calculator — farewise</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; }
+    #seo-landing { max-width: 760px; margin: 0 auto; padding: 24px 20px 8px; line-height: 1.5;
+      color: #201E1B; background: #FBF9F6; }
+    #seo-landing h1 { font-size: 1.5rem; color: #C2410C; margin: 0 0 8px; }
+    #seo-landing h2 { font-size: 1.05rem; margin: 20px 0 6px; }
+    #seo-landing code { background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 4px; }
+    #seo-landing .lanes { display: flex; gap: 6px; margin: 10px 0; }
+    #seo-landing .lanes span { height: 10px; border-radius: 5px; background: #E8590C; opacity: .35; }
+    #seo-landing .lanes span.win { opacity: 1; }
+    #flutter-app { height: 82vh; min-height: 520px; border-top: 3px solid #C2410C; }
+    @media (prefers-color-scheme: dark) {
+      #seo-landing { color: #ECE8E1; background: #171614; }
+      #seo-landing h1 { color: #FB923C; }
+      #seo-landing code { background: rgba(255,255,255,0.12); }
+      #seo-landing .lanes span { background: #FB923C; }
+    }
+  
+    .app-cta { margin: 18px 0 6px; display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; }
+    .app-cta a { display:inline-block; background:#C2410C; color:#fff; text-decoration:none;
+      font-weight:700; padding:11px 20px; border-radius:8px; font-size:1rem; line-height:1.1; }
+    .app-cta a:hover { filter:brightness(1.08); }
+    .app-cta .note { font-size:0.85rem; opacity:0.82; }
+  </style>
+
+  <!-- Crawlable structured data: the Flutter canvas is not indexable, so the
+       facts live in real HTML + JSON-LD. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "farewise",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web, Windows, macOS, Linux, Android, iOS",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+    "description": "Compare the true monthly cost of driving your own vehicle vs cabs vs metro/bus for the trips you already take, from fuel, parking, insurance, fares and trip counts you enter. Names the cheapest mode and the monthly saving."
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is it cheaper to drive my own car or take Uber/Ola?",
+        "acceptedAnswer": { "@type": "Answer", "text": "It depends on your distance, trips per month and running costs. farewise adds your fuel (km × price ÷ efficiency), parking, and a monthly slice of insurance and maintenance to get your car's true monthly cost, then compares it against cab fare × trips and your metro/bus fare or pass. Enter your own numbers and it names the cheapest and the monthly saving." }
+      },
+      {
+        "@type": "Question",
+        "name": "How is the car's monthly running cost calculated?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Monthly kilometres = trips per month × distance per trip. Fuel = monthly km × fuel price ÷ efficiency (km/L). Then add parking, plus insurance ÷ 12 and maintenance ÷ 12. That total is your vehicle's monthly cost assuming you already own it — no purchase, EMI or depreciation." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it use live or surge fares?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Fares are averages you enter — there is no surge, dynamic or time-of-day pricing. A ₹180 average cab trip can bill ₹250 at surge, so treat the result as a typical-month estimate, not a live quote." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it compare money only, or also time?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Rupees only, not minutes. farewise ignores travel time, comfort, reliability and safety. The metro often wins on cost while costing you time — weigh that yourself." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is my data private?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. The full app is local-first: your scenarios live in a SQLite file on your own machine and it runs on localhost. This web demo computes entirely in your browser and stores nothing on any server." }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <main id="seo-landing">
+    <h1>Car vs cab vs metro: what your commute actually costs each month</h1>
+    <p><strong>farewise</strong> compares the true monthly cost of driving your
+    <strong>own vehicle</strong> against <strong>cabs</strong> and
+    <strong>metro/bus</strong> — for the trips you already take. Enter your
+    distance, trips, fuel price and efficiency, parking, insurance, maintenance
+    and average fares, and it names the <strong>cheapest mode</strong> and your
+    <strong>monthly saving</strong>. Free, private and offline.</p>
+
+    <div class="lanes" aria-hidden="true">
+      <span style="flex:7"></span><span style="flex:8"></span><span class="win" style="flex:1"></span>
+    </div>
+  <div class="app-cta">
+    <a href="mailto:sadhu.sreenivas@gmail.com?subject=Waitlist%3A%20farewise%20full%20app&body=Please%20notify%20me%20when%20the%20full%20offline%20farewise%20app%20is%20available.">Get the full app — join the waitlist →</a>
+    <span class="note">Full offline app coming soon. The demo below is free to use now.</span>
+  </div>
+
+
+    <h2>How the monthly math works</h2>
+    <p>Monthly trips = trips per day × commute days. Monthly km = trips ×
+    distance. <code>Fuel = km × price ÷ efficiency</code>; the car's cost adds
+    parking plus <code>insurance ÷ 12</code> and <code>maintenance ÷ 12</code>.
+    Cab = <code>fare × trips</code>. Metro/bus = fare × trips, capped by a
+    monthly pass when the pass is cheaper.</p>
+
+    <h2>A worked example</h2>
+    <p>A 12&nbsp;km commute, 2 trips a day, 22 days a month at ₹100/L and
+    15&nbsp;km/L, with ₹1,000 parking and ₹12,000/yr each for insurance and
+    maintenance, comes to <code>₹6,520/mo</code> to drive. Cabs at ₹180/trip are
+    <code>₹7,920/mo</code>; a ₹1,000 metro pass is <code>₹1,000/mo</code>. The
+    metro wins — you'd save <code>₹6,920/mo</code> (₹83,040/yr) versus cabs.</p>
+
+    <h2>What it does not do</h2>
+    <p>Fares are averages you enter — no surge or live pricing. It weighs rupees,
+    not minutes. It assumes you already own the vehicle (no purchase, EMI or
+    depreciation). Currency is a label only — no exchange-rate conversion.</p>
+
+    <h2>Try it below</h2>
+    <p>The calculator below is loaded with sample commutes. Edit any field or add
+    your own — nothing you type leaves this page.</p>
+  </main>
+
+  <div id="flutter-app"></div>
+
+    <script src="flutter.js" defer></script>
+  <!-- buildConfig is injected here at build time from the generated flutter_bootstrap.js
+       (ship-app.sh / build-web.sh). Without it the loader throws "requires _flutter.buildConfig". -->
+  <script>window._flutter=window._flutter||{};_flutter.buildConfig = {"engineRevision":"c416acfeb8126e097f758c664aaa3da929e27da0","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js"},{}]};</script>
+  <script>
+    window.addEventListener("load", function () {
+      _flutter.loader.load({ config: { hostElement: document.getElementById("flutter-app") } });
+    });
+  </script>
+</body>
+</html>
